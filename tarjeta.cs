@@ -5,8 +5,7 @@ namespace TransporteUrbano
 {
     public class Tarjeta
     {
-        private const decimal LimiteSaldo = 9900m;
-        private const decimal MaximoSaldoNegativo = -480m;
+        private const decimal LimiteSaldo = 9900m; 
         private List<Boleto> historialBoletos = new List<Boleto>();
 
         public decimal Saldo { get; protected set; }
@@ -23,7 +22,7 @@ namespace TransporteUrbano
 
         public virtual decimal ObtenerTarifa()
         {
-            return 940m;
+            return 940m; 
         }
 
         public void CargarSaldo(decimal monto)
@@ -38,29 +37,14 @@ namespace TransporteUrbano
                 throw new InvalidOperationException("Carga excede el límite de saldo.");
             }
 
-            if (Saldo < 0)
-            {
-                decimal deuda = -Saldo;
-                if (monto >= deuda)
-                {
-                    monto -= deuda;
-                    Saldo = 0;
-                }
-                else
-                {
-                    Saldo += monto;
-                    monto = 0; 
-                }
-            }
-
             Saldo += monto;
         }
 
         public void DescontarSaldo(decimal monto)
         {
-            if (Saldo - monto < MaximoSaldoNegativo)
+            if (Saldo - monto < 0)
             {
-                throw new InvalidOperationException("No se puede realizar la transacción. El saldo no puede ser menor a -$480.");
+                throw new InvalidOperationException("No se puede realizar la transacción.");
             }
 
             Saldo -= monto;
@@ -81,7 +65,7 @@ namespace TransporteUrbano
 
         private bool EsSaldoValido(decimal saldo)
         {
-            return saldo >= MaximoSaldoNegativo && saldo <= LimiteSaldo;
+            return saldo <= LimiteSaldo;
         }
 
         public void AgregarBoletoAlHistorial(Boleto boleto)
@@ -104,5 +88,34 @@ namespace TransporteUrbano
             }
         }
     }
-}
 
+    public class TarjetaMedioBoleto : Tarjeta
+    {
+        public TarjetaMedioBoleto(decimal saldoInicial) : base(saldoInicial) { }
+
+        public override decimal ObtenerTarifa()
+        {
+            return base.ObtenerTarifa() / 2;
+        }
+    }
+
+    public class TarjetaJubilado : Tarjeta
+    {
+        public TarjetaJubilado(decimal saldoInicial) : base(saldoInicial) { }
+
+        public override decimal ObtenerTarifa()
+        {
+            return 0m;
+        }
+    }
+
+    public class Boleto
+    {
+        public decimal Monto { get; }
+
+        public Boleto(decimal monto)
+        {
+            Monto = monto;
+        }
+    }
+}

@@ -9,7 +9,23 @@ namespace TransporteUrbano
             Console.WriteLine("Ingrese el saldo inicial de la tarjeta:");
             decimal saldoInicial = Convert.ToDecimal(Console.ReadLine());
 
-            Tarjeta tarjeta = new Tarjeta(saldoInicial);
+            Console.WriteLine("Elija el tipo de tarjeta: 1. Regular, 2. Medio Boleto, 3. Jubilado");
+            string tipoTarjeta = Console.ReadLine();
+
+            Tarjeta tarjeta;
+
+            switch (tipoTarjeta)
+            {
+                case "2":
+                    tarjeta = new TarjetaMedioBoleto(saldoInicial);
+                    break;
+                case "3":
+                    tarjeta = new TarjetaJubilado(saldoInicial);
+                    break;
+                default:
+                    tarjeta = new Tarjeta(saldoInicial);
+                    break;
+            }
 
             Colectivo colectivo = new Colectivo();
 
@@ -58,14 +74,7 @@ namespace TransporteUrbano
 
         static void MostrarSaldo(Tarjeta tarjeta)
         {
-            if (tarjeta.Saldo < 0)
-            {
-                Console.WriteLine($"Saldo actual de la tarjeta: ${tarjeta.Saldo} (deuda por viaje plus)");
-            }
-            else
-            {
-                Console.WriteLine($"Saldo actual de la tarjeta: ${tarjeta.Saldo}");
-            }
+            Console.WriteLine($"Saldo actual de la tarjeta: ${tarjeta.Saldo}");
         }
 
         static void CargarSaldo(Tarjeta tarjeta)
@@ -99,4 +108,3 @@ namespace TransporteUrbano
         }
     }
 }
-
