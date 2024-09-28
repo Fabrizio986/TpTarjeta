@@ -98,13 +98,15 @@ namespace TransporteUrbano
             try
             {
                 Boleto boleto = colectivo.PagarCon(tarjeta);
-                Console.WriteLine($"Pago realizado. Monto del boleto: ${boleto.Monto}");
-                Console.WriteLine($"Saldo restante en la tarjeta: ${tarjeta.Saldo}");
+                Console.WriteLine("Pago realizado:");
+                boleto.MostrarDetalles();
+                Console.WriteLine($"Saldo restante en la tarjeta después del pago: ${tarjeta.Saldo}");
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error al pagar el boleto: {ex.Message}");
             }
         }
+
     }
 }
