@@ -6,6 +6,7 @@ namespace TransporteUrbano
     public class Tarjeta
     {
         private const decimal LimiteSaldo = 9900m; 
+        private const decimal SaldoNegativoMaximo = -480m; 
         private List<Boleto> historialBoletos = new List<Boleto>();
 
         public decimal Saldo { get; protected set; }
@@ -42,9 +43,9 @@ namespace TransporteUrbano
 
         public void DescontarSaldo(decimal monto)
         {
-            if (Saldo - monto < 0)
+            if (Saldo - monto < SaldoNegativoMaximo)
             {
-                throw new InvalidOperationException("No se puede realizar la transacción.");
+                throw new InvalidOperationException($"No se puede realizar la transacción. Saldo mínimo permitido: ${SaldoNegativoMaximo}");
             }
 
             Saldo -= monto;
@@ -106,16 +107,6 @@ namespace TransporteUrbano
         public override decimal ObtenerTarifa()
         {
             return 0m;
-        }
-    }
-
-    public class Boleto
-    {
-        public decimal Monto { get; }
-
-        public Boleto(decimal monto)
-        {
-            Monto = monto;
         }
     }
 }
