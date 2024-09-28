@@ -15,8 +15,7 @@ namespace TransporteUrbano
         public Boleto(decimal monto, string tipoTarjeta, string lineaColectivo, decimal saldoRestante, int idTarjeta)
         {
             Monto = monto;
-            Fecha = DateTime.Now;
-            Fecha = Fecha.AddHours(-3); 
+            Fecha = DateTime.Now.AddHours(-3);
             TipoTarjeta = tipoTarjeta;
             LineaColectivo = lineaColectivo;
             SaldoRestante = saldoRestante;
@@ -30,15 +29,8 @@ namespace TransporteUrbano
             Console.WriteLine($"Fecha: {Fecha}");
             Console.WriteLine($"Tipo de Tarjeta: {TipoTarjeta}");
             Console.WriteLine($"Línea de Colectivo: {LineaColectivo}");
-            Console.WriteLine($"Saldo Restante en el boleto: ${SaldoRestante}");
-            Console.WriteLine($"ID de Tarjeta: {IdTarjeta}");
-
-            if (SaldoAbonado > 0)
-            {
-                Console.WriteLine($"Descripción: Abona saldo ${SaldoAbonado}");
-            }
+            Console.WriteLine($"Saldo Restante: ${SaldoRestante}");
+            Console.WriteLine($"Saldo Abonado: ${SaldoAbonado}");
         }
     }
-
-
 }

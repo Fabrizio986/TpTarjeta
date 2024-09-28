@@ -107,6 +107,5 @@ namespace TransporteUrbano
                 Console.WriteLine($"Error al pagar el boleto: {ex.Message}");
             }
         }
-
     }
 }
