@@ -65,7 +65,7 @@ namespace TransporteUrbano
 
         private bool EsSaldoValido(decimal saldo)
         {
-            return saldo >= 0 && saldo <= LimiteSaldo;
+            return saldo <= LimiteSaldo;
         }
 
         public void AgregarBoletoAlHistorial(Boleto boleto)
@@ -108,5 +108,14 @@ namespace TransporteUrbano
             return 0m;
         }
     }
-}
 
+    public class Boleto
+    {
+        public decimal Monto { get; }
+
+        public Boleto(decimal monto)
+        {
+            Monto = monto;
+        }
+    }
+}

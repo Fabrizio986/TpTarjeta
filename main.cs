@@ -23,7 +23,7 @@ namespace TransporteUrbano
                     tarjeta = new TarjetaJubilado(saldoInicial);
                     break;
                 default:
-                    tarjeta = new Tarjeta(saldoInicial); 
+                    tarjeta = new Tarjeta(saldoInicial);
                     break;
             }
 
@@ -108,4 +108,3 @@ namespace TransporteUrbano
         }
     }
 }
-

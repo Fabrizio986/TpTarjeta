@@ -9,9 +9,8 @@ namespace TransporteUrbano
             decimal tarifa = tarjeta.ObtenerTarifa();
             tarjeta.DescontarSaldo(tarifa);
             Boleto boleto = new Boleto(tarifa);
-            tarjeta.AgregarBoletoAlHistorial(boleto); 
+            tarjeta.AgregarBoletoAlHistorial(boleto);
             return boleto;
         }
     }
 }
-
