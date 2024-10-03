@@ -9,7 +9,7 @@ namespace TransporteUrbano
             Console.WriteLine("Ingrese el saldo inicial de la tarjeta:");
             decimal saldoInicial = Convert.ToDecimal(Console.ReadLine());
 
-            Console.WriteLine("Elija el tipo de tarjeta: 1. Regular, 2. Medio Boleto, 3. Jubilado");
+            Console.WriteLine("Elija el tipo de tarjeta: 1. Regular, 2. Medio Boleto, 3. Jubilado, 4. Boleto Educativo");
             string tipoTarjeta = Console.ReadLine();
 
             Tarjeta tarjeta;
@@ -21,6 +21,9 @@ namespace TransporteUrbano
                     break;
                 case "3":
                     tarjeta = new TarjetaJubilado(saldoInicial);
+                    break;
+                case "4":
+                    tarjeta = new TarjetaBoletoEducativo(saldoInicial);
                     break;
                 default:
                     tarjeta = new Tarjeta(saldoInicial);
@@ -97,10 +100,30 @@ namespace TransporteUrbano
         {
             try
             {
-                Boleto boleto = colectivo.PagarCon(tarjeta);
-                Console.WriteLine("Pago realizado:");
-                boleto.MostrarDetalles();
-                Console.WriteLine($"Saldo restante en la tarjeta después del pago: ${tarjeta.Saldo}");
+                if (tarjeta is TarjetaBoletoEducativo tarjetaEducativa)
+                {
+                    // Verificar si han pasado 5 minutos desde el último viaje
+                    if (tarjetaEducativa.PuedeViajar())
+                    {
+                        Boleto boleto = colectivo.PagarCon(tarjeta);
+                        tarjetaEducativa.RegistrarViaje();  // Registrar el viaje gratuito
+                        Console.WriteLine("Pago realizado:");
+                        boleto.MostrarDetalles();
+                        Console.WriteLine($"Saldo restante en la tarjeta después del pago: ${tarjeta.Saldo}");
+                    }
+                    else
+                    {
+                        Console.WriteLine("No se puede realizar el viaje gratuito en este momento. Han pasado menos de 5 minutos desde el último viaje.");
+                    }
+                }
+                else
+                {
+                    // Para las tarjetas regulares, medio boleto y jubilado
+                    Boleto boleto = colectivo.PagarCon(tarjeta);
+                    Console.WriteLine("Pago realizado:");
+                    boleto.MostrarDetalles();
+                    Console.WriteLine($"Saldo restante en la tarjeta después del pago: ${tarjeta.Saldo}");
+                }
             }
             catch (Exception ex)
             {
@@ -109,3 +132,4 @@ namespace TransporteUrbano
         }
     }
 }
+

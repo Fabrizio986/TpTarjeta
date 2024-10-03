@@ -93,51 +93,101 @@ namespace TransporteUrbano
     public class TarjetaMedioBoleto : Tarjeta
     {
         private DateTime? ultimoViaje;
-        private int viajesHoy;
+        private int viajesRealizados;
 
-        public TarjetaMedioBoleto(decimal saldoInicial) : base(saldoInicial)
+        public TarjetaMedioBoleto(decimal saldoInicial) : base(saldoInicial) { }
+
+        public bool PuedeViajar()
         {
-            viajesHoy = 0;
-            ultimoViaje = null; 
+            if (ultimoViaje == null)
+            {
+                return true;
+            }
+
+            if ((DateTime.Now - ultimoViaje.Value).TotalMinutes < 5)
+            {
+                return false;
+            }
+
+            return viajesRealizados < 2;
+        }
+
+        public void RegistrarViaje()
+        {
+            if (ultimoViaje == null || (DateTime.Now - ultimoViaje.Value).TotalMinutes >= 5)
+            {
+                ultimoViaje = DateTime.Now;
+                viajesRealizados++;
+            }
         }
 
         public override decimal ObtenerTarifa()
         {
-            return base.ObtenerTarifa() / 2;
+            return 940 / 2;
+        }
+
+    }
+
+    public class TarjetaBoletoEducativo : Tarjeta
+    {
+        private int viajesGratisRealizados;
+        private DateTime? ultimoViaje; 
+
+        public TarjetaBoletoEducativo(decimal saldoInicial) : base(saldoInicial)
+        {
+            viajesGratisRealizados = 0;
+            ultimoViaje = null;
         }
 
         public bool PuedeViajar()
         {
-            if (ultimoViaje.HasValue)
+            if (viajesGratisRealizados >= 2)
             {
-                TimeSpan tiempoDesdeUltimoViaje = DateTime.Now - ultimoViaje.Value;
-                if (tiempoDesdeUltimoViaje < TimeSpan.FromMinutes(5))
-                {
-                    return false; 
-                }
+                return false;
             }
 
-            if (viajesHoy >= 4)
+            if (ultimoViaje.HasValue)
             {
-                return false; 
+                var tiempoTranscurrido = DateTime.Now - ultimoViaje.Value;
+                if (tiempoTranscurrido.TotalMinutes < 5)
+                {
+                    Console.WriteLine("Debe esperar 5 minutos entre los viajes gratuitos.");
+                    return false;
+                }
             }
 
             return true;
         }
 
+
         public void RegistrarViaje()
         {
-            ultimoViaje = DateTime.Now;
-            viajesHoy++;
+            if (viajesGratisRealizados < 2)
+            {
+                viajesGratisRealizados++;
+                ultimoViaje = DateTime.Now;
+                Console.WriteLine("Viaje gratuito registrado.");
+            }
+            else
+            {
+                Console.WriteLine("Ya ha alcanzado el límite de viajes gratuitos por hoy.");
+            }
         }
 
-        public void ResetearViajesDelDia()
+        // Obtiene la tarifa
+        public override decimal ObtenerTarifa()
         {
-            viajesHoy = 0; 
+    
+            if (viajesGratisRealizados < 2)
+            {
+                return 0;
+            }
+            else
+            {
+                return 940;
+            }
         }
-    }
-
-
+    }    
     public class TarjetaJubilado : Tarjeta
     {
         public TarjetaJubilado(decimal saldoInicial) : base(saldoInicial) { }
@@ -147,4 +197,7 @@ namespace TransporteUrbano
             return 0m;
         }
     }
+
+    
 }
+

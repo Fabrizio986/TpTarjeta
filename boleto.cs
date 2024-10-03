@@ -4,33 +4,25 @@ namespace TransporteUrbano
 {
     public class Boleto
     {
-        public decimal Monto { get; private set; }
-        public DateTime Fecha { get; private set; }
-        public string TipoTarjeta { get; private set; }
-        public string LineaColectivo { get; private set; }
-        public decimal SaldoRestante { get; private set; }
-        public int IdTarjeta { get; private set; }
-        public decimal SaldoAbonado { get; private set; }
+        public decimal Monto { get; }
+        public string Tipo { get; }
+        public string Linea { get; }
+        public decimal SaldoRestante { get; }
+        public int ViajeId { get; }
 
-        public Boleto(decimal monto, string tipoTarjeta, string lineaColectivo, decimal saldoRestante, int idTarjeta)
+        public Boleto(decimal monto, string tipo, string linea, decimal saldoRestante, int viajeId)
         {
             Monto = monto;
-            Fecha = DateTime.Now.AddHours(-3);
-            TipoTarjeta = tipoTarjeta;
-            LineaColectivo = lineaColectivo;
+            Tipo = tipo;
+            Linea = linea;
             SaldoRestante = saldoRestante;
-            IdTarjeta = idTarjeta;
-            SaldoAbonado = SaldoRestante < 0 ? Math.Abs(SaldoRestante) : 0;
+            ViajeId = viajeId;
         }
 
         public void MostrarDetalles()
         {
-            Console.WriteLine($"Monto: ${Monto}");
-            Console.WriteLine($"Fecha: {Fecha}");
-            Console.WriteLine($"Tipo de Tarjeta: {TipoTarjeta}");
-            Console.WriteLine($"Línea de Colectivo: {LineaColectivo}");
-            Console.WriteLine($"Saldo Restante: ${SaldoRestante}");
-            Console.WriteLine($"Saldo Abonado: ${SaldoAbonado}");
+            Console.WriteLine($"Boleto {ViajeId} - Tipo: {Tipo} - Línea: {Linea} - Monto: ${Monto} - Saldo restante: ${SaldoRestante}");
         }
     }
 }
+
