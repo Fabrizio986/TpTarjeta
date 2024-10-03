@@ -92,13 +92,51 @@ namespace TransporteUrbano
 
     public class TarjetaMedioBoleto : Tarjeta
     {
-        public TarjetaMedioBoleto(decimal saldoInicial) : base(saldoInicial) { }
+        private DateTime? ultimoViaje;
+        private int viajesHoy;
+
+        public TarjetaMedioBoleto(decimal saldoInicial) : base(saldoInicial)
+        {
+            viajesHoy = 0;
+            ultimoViaje = null; 
+        }
 
         public override decimal ObtenerTarifa()
         {
             return base.ObtenerTarifa() / 2;
         }
+
+        public bool PuedeViajar()
+        {
+            if (ultimoViaje.HasValue)
+            {
+                TimeSpan tiempoDesdeUltimoViaje = DateTime.Now - ultimoViaje.Value;
+                if (tiempoDesdeUltimoViaje < TimeSpan.FromMinutes(5))
+                {
+                    return false; 
+                }
+            }
+
+            if (viajesHoy >= 4)
+            {
+                return false; 
+            }
+
+            return true;
+        }
+
+        public void RegistrarViaje()
+        {
+            ultimoViaje = DateTime.Now;
+            viajesHoy++;
+        }
+
+        public void ResetearViajesDelDia()
+        {
+            viajesHoy = 0; 
+        }
     }
+
 
     public class TarjetaJubilado : Tarjeta
     {
