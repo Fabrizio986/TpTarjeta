@@ -102,14 +102,12 @@ namespace TransporteUrbano
             {
                 if (tarjeta is TarjetaBoletoEducativo tarjetaEducativa)
                 {
-                    // Verificar si han pasado 5 minutos desde el último viaje
                     if (tarjetaEducativa.PuedeViajar())
                     {
                         Boleto boleto = colectivo.PagarCon(tarjeta);
-                        tarjetaEducativa.RegistrarViaje();  // Registrar el viaje gratuito
+                        tarjetaEducativa.RegistrarViaje();  
                         Console.WriteLine("Pago realizado:");
                         boleto.MostrarDetalles();
-                        Console.WriteLine($"Saldo restante en la tarjeta después del pago: ${tarjeta.Saldo}");
                     }
                     else
                     {
@@ -118,11 +116,9 @@ namespace TransporteUrbano
                 }
                 else
                 {
-                    // Para las tarjetas regulares, medio boleto y jubilado
                     Boleto boleto = colectivo.PagarCon(tarjeta);
                     Console.WriteLine("Pago realizado:");
                     boleto.MostrarDetalles();
-                    Console.WriteLine($"Saldo restante en la tarjeta después del pago: ${tarjeta.Saldo}");
                 }
             }
             catch (Exception ex)

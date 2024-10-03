@@ -5,12 +5,13 @@ namespace TransporteUrbano
 {
     public class Tarjeta
     {
-        private const decimal LimiteSaldo = 9900m; 
+        private const decimal LimiteSaldo = 36000m; 
         private const decimal SaldoNegativoMaximo = -480m; 
         private List<Boleto> historialBoletos = new List<Boleto>();
 
         public decimal Saldo { get; protected set; }
-
+        public decimal SaldoPendiente { get; private set; }
+        
         public Tarjeta(decimal saldoInicial)
         {
             if (!EsSaldoValido(saldoInicial))
@@ -19,6 +20,7 @@ namespace TransporteUrbano
             }
 
             Saldo = saldoInicial;
+            SaldoPendiente = 0m;
         }
 
         public virtual decimal ObtenerTarifa()
@@ -33,12 +35,17 @@ namespace TransporteUrbano
                 throw new ArgumentException("Monto de carga no válido.");
             }
 
-            if (Saldo + monto > LimiteSaldo)
-            {
-                throw new InvalidOperationException("Carga excede el límite de saldo.");
-            }
+            decimal totalSaldo = Saldo + monto;
 
-            Saldo += monto;
+            if (totalSaldo > LimiteSaldo)
+            {
+                SaldoPendiente = totalSaldo - LimiteSaldo;
+                Saldo = LimiteSaldo;
+            }
+            else
+            {
+                Saldo += monto;
+            }
         }
 
         public void DescontarSaldo(decimal monto)
@@ -49,6 +56,19 @@ namespace TransporteUrbano
             }
 
             Saldo -= monto;
+            AcreditarSaldoPendiente(); 
+        }
+
+        private void AcreditarSaldoPendiente()
+        {
+            if (SaldoPendiente > 0)
+            {
+                decimal espacioDisponible = LimiteSaldo - Saldo;
+                decimal montoAcreditado = Math.Min(espacioDisponible, SaldoPendiente);
+
+                Saldo += montoAcreditado;
+                SaldoPendiente -= montoAcreditado;
+            }
         }
 
         private bool EsCargaValida(decimal monto)
@@ -125,7 +145,6 @@ namespace TransporteUrbano
         {
             return 940 / 2;
         }
-
     }
 
     public class TarjetaBoletoEducativo : Tarjeta
@@ -159,14 +178,12 @@ namespace TransporteUrbano
             return true;
         }
 
-
         public void RegistrarViaje()
         {
             if (viajesGratisRealizados < 2)
             {
                 viajesGratisRealizados++;
                 ultimoViaje = DateTime.Now;
-                Console.WriteLine("Viaje gratuito registrado.");
             }
             else
             {
@@ -174,10 +191,8 @@ namespace TransporteUrbano
             }
         }
 
-        // Obtiene la tarifa
         public override decimal ObtenerTarifa()
         {
-    
             if (viajesGratisRealizados < 2)
             {
                 return 0;
@@ -187,7 +202,8 @@ namespace TransporteUrbano
                 return 940;
             }
         }
-    }    
+    }
+
     public class TarjetaJubilado : Tarjeta
     {
         public TarjetaJubilado(decimal saldoInicial) : base(saldoInicial) { }
@@ -197,7 +213,5 @@ namespace TransporteUrbano
             return 0m;
         }
     }
-
-    
 }
 
