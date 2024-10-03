@@ -7,6 +7,7 @@ namespace TransporteUrbano
         public Boleto PagarCon(Tarjeta tarjeta)
         {
             TarjetaMedioBoleto tarjetaMedioBoleto = tarjeta as TarjetaMedioBoleto;
+            TarjetaBoletoEducativo tarjetaBoletoEducativo = tarjeta as TarjetaBoletoEducativo;
 
             if (tarjetaMedioBoleto != null)
             {
@@ -17,17 +18,49 @@ namespace TransporteUrbano
             }
 
             decimal tarifa = tarjeta.ObtenerTarifa();
-            tarjeta.DescontarSaldo(tarifa);
+
+            if (tarjetaBoletoEducativo != null)
+            {
+                
+                if (tarjetaBoletoEducativo.PuedeViajar())
+                {
+                    Console.WriteLine("Viaje gratuito con boleto educativo.");
+                    tarifa = 0;
+                }
+                else
+                {
+                    Console.WriteLine("Se ha alcanzado el límite de viajes gratuitos por hoy. Ahora se cobrará tarifa normal.");
+                }
+            }
+
+            if (tarifa > 0)
+            {
+                
+                if (tarjeta.Saldo >= tarifa)
+                {
+                    tarjeta.DescontarSaldo(tarifa);
+                }
+                else
+                {
+                    throw new InvalidOperationException("Saldo insuficiente para realizar el pago.");
+                }
+            }
+
             Boleto boleto = new Boleto(tarifa, tarjeta.GetType().Name, "Línea 1", tarjeta.Saldo, 1);
             tarjeta.AgregarBoletoAlHistorial(boleto);
 
             if (tarjetaMedioBoleto != null)
             {
-                tarjetaMedioBoleto.RegistrarViaje(); 
+                tarjetaMedioBoleto.RegistrarViaje();
+            }
+
+            if (tarjetaBoletoEducativo != null)
+            {
+                tarjetaBoletoEducativo.RegistrarViaje();
             }
 
             return boleto;
         }
     }
-
 }
+
