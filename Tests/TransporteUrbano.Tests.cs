@@ -9,7 +9,7 @@ namespace TransporteUrbano.Tests
         public void PagarBoleto_ConSaldo_DescuentaSaldo()
         {
             // Arrange
-            decimal saldoInicial = 1000m;
+            decimal saldoInicial = 1300m;
             Tarjeta tarjeta = new Tarjeta(saldoInicial);
             Colectivo colectivo = new Colectivo();
             decimal tarifa = tarjeta.ObtenerTarifa();
@@ -25,7 +25,7 @@ namespace TransporteUrbano.Tests
         public void PagarBoleto_SinSaldo_NoDescuentaSaldo()
         {
             // Arrange
-            decimal saldoInicial = 500m; // menos que la tarifa
+            decimal saldoInicial = 600m; // menos que la tarifa
             Tarjeta tarjeta = new Tarjeta(saldoInicial);
             Colectivo colectivo = new Colectivo();
 
@@ -58,7 +58,7 @@ namespace TransporteUrbano.Tests
 
             // Act
             Boleto boleto = colectivo.PagarCon(tarjeta);
-            decimal tarifaEsperada = 940 / 2;
+            decimal tarifaEsperada = 1200 / 2;
 
             // Assert
             Assert.Equal(tarifaEsperada, boleto.Monto);
@@ -70,7 +70,7 @@ namespace TransporteUrbano.Tests
         public void PagarBoleto_ConTarjetaNormal_DescuentaTarifaCompleta()
         {
             // Arrange
-            decimal saldoInicial = 1000m;
+            decimal saldoInicial = 1300m;
             Tarjeta tarjeta = new Tarjeta(saldoInicial);
             Colectivo colectivo = new Colectivo();
             decimal tarifa = tarjeta.ObtenerTarifa(); 
@@ -115,6 +115,65 @@ namespace TransporteUrbano.Tests
             Assert.Equal(36000m, tarjeta.Saldo); // Verifica que el saldo no supere el límite
             Assert.Equal(2000m, tarjeta.SaldoPendiente); // Verifica que el excedente se haya almacenado como saldo pendiente
         }
+
+        [Fact]
+        public void ObtenerTarifa_Viaje31_DebeAplicarDescuento20Porciento()
+        {
+            // Arrange
+            var tarjeta = new Tarjeta(30000m);
+
+            for (int i = 0; i < 30; i++)
+            {
+                tarjeta.ObtenerTarifa();
+            }
+
+            // Act
+            decimal tarifaViaje31 = tarjeta.ObtenerTarifa();
+
+            // Assert
+            Assert.Equal(1200m * 0.80m, tarifaViaje31); // 20% de descuento
+        }
+
+        [Fact]
+        public void ObtenerTarifa_Viaje80_DebeAplicarDescuento25Porciento()
+        {
+            // Arrange
+            var tarjeta = new Tarjeta(30000m);
+
+            // Simular 79 viajes en el mes actual
+            for (int i = 0; i < 79; i++)
+            {
+                tarjeta.ObtenerTarifa();
+            }
+
+            // Act
+            decimal tarifaViaje80 = tarjeta.ObtenerTarifa();
+
+            // Assert
+            Assert.Equal(1200m * 0.75m, tarifaViaje80); 
+        }
+
+        [Fact]
+        public void ObtenerTarifa_NuevoMes_DebeReiniciarConteoDeViajes()
+        {
+            // Arrange
+            var tarjeta = new Tarjeta(30000m);
+
+            for (int i = 0; i < 30; i++)
+            {
+                tarjeta.ObtenerTarifa();
+            }
+
+            // Simular cambio de mes
+            tarjeta = new Tarjeta(10000m); 
+
+            // Act
+            decimal tarifaPrimerViajeNuevoMes = tarjeta.ObtenerTarifa();
+
+            // Assert
+            Assert.Equal(1200m, tarifaPrimerViajeNuevoMes);
+        }
+
 
 
     }
