@@ -30,7 +30,6 @@ namespace TransporteUrbano
 
         public virtual decimal ObtenerTarifa()
         {
-            
             if (DateTime.Now.Month != fechaPrimerViajeDelMes.Month)
             {
                 viajesEsteMes = 0;
@@ -39,7 +38,6 @@ namespace TransporteUrbano
 
             viajesEsteMes++;
 
-            
             if (viajesEsteMes >= 30 && viajesEsteMes <= 79)
             {
                 return TarifaBase * 0.80m; 
@@ -134,6 +132,19 @@ namespace TransporteUrbano
                 Console.WriteLine($"Monto: ${boleto.Monto}");
             }
         }
+
+        protected bool EsHorarioPermitido()
+        {
+            DateTime now = DateTime.Now;
+            if (now.DayOfWeek >= DayOfWeek.Monday && now.DayOfWeek <= DayOfWeek.Friday)
+            {
+                if (now.Hour >= 6 && now.Hour < 22)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
     }
 
     public class TarjetaMedioBoleto : Tarjeta
@@ -145,6 +156,12 @@ namespace TransporteUrbano
 
         public bool PuedeViajar()
         {
+            if (!EsHorarioPermitido())
+            {
+                Console.WriteLine("Viaje no permitido fuera de la franja horaria de 6 a 22, de lunes a viernes.");
+                return false;
+            }
+
             if (ultimoViaje == null)
             {
                 return true;
@@ -186,6 +203,12 @@ namespace TransporteUrbano
 
         public bool PuedeViajar()
         {
+            if (!EsHorarioPermitido())
+            {
+                Console.WriteLine("Viaje no permitido fuera de la franja horaria de 6 a 22, de lunes a viernes.");
+                return false;
+            }
+
             if (viajesGratisRealizados >= 2)
             {
                 return false;
@@ -237,6 +260,17 @@ namespace TransporteUrbano
         public override decimal ObtenerTarifa()
         {
             return 0m;
+        }
+
+        public bool PuedeViajar()
+        {
+            if (!EsHorarioPermitido())
+            {
+                Console.WriteLine("Viaje no permitido fuera de la franja horaria de 6 a 22, de lunes a viernes.");
+                return false;
+            }
+
+            return true;
         }
     }
 }
