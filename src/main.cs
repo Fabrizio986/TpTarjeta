@@ -40,8 +40,9 @@ namespace TransporteUrbano
                 Console.WriteLine("1. Ver saldo");
                 Console.WriteLine("2. Cargar saldo");
                 Console.WriteLine("3. Pagar boleto");
-                Console.WriteLine("4. Ver historial de boletos");
-                Console.WriteLine("5. Salir");
+                Console.WriteLine("4. Pagar boleto interurbano");
+                Console.WriteLine("5. Ver historial de boletos");
+                Console.WriteLine("6. Salir");
                 Console.Write("Elige una opción: ");
                 string opcion = Console.ReadLine();
 
@@ -60,10 +61,14 @@ namespace TransporteUrbano
                         break;
 
                     case "4":
-                        tarjeta.VerHistorialBoletos();
+                        PagarBoletoInterurbano(tarjeta, colectivo);
                         break;
 
                     case "5":
+                        tarjeta.VerHistorialBoletos();
+                        break;
+
+                    case "6":
                         continuar = false;
                         Console.WriteLine("Saliendo del programa...");
                         break;
@@ -124,6 +129,20 @@ namespace TransporteUrbano
             catch (Exception ex)
             {
                 Console.WriteLine($"Error al pagar el boleto: {ex.Message}");
+            }
+        }
+
+        static void PagarBoletoInterurbano(Tarjeta tarjeta, Colectivo colectivo)
+        {
+            try
+            {
+                Boleto boleto = colectivo.PagarCon(tarjeta, true);
+                Console.WriteLine("Pago realizado para boleto interurbano:");
+                boleto.MostrarDetalles();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al pagar el boleto interurbano: {ex.Message}");
             }
         }
     }
