@@ -7,11 +7,14 @@ namespace TransporteUrbano
     {
         private const decimal LimiteSaldo = 36000m; 
         private const decimal SaldoNegativoMaximo = -480m; 
+        protected const decimal TarifaBase = 1200m;
         private List<Boleto> historialBoletos = new List<Boleto>();
+        private DateTime fechaPrimerViajeDelMes;
+        private int viajesEsteMes;
 
         public decimal Saldo { get; protected set; }
         public decimal SaldoPendiente { get; private set; }
-        
+
         public Tarjeta(decimal saldoInicial)
         {
             if (!EsSaldoValido(saldoInicial))
@@ -21,11 +24,34 @@ namespace TransporteUrbano
 
             Saldo = saldoInicial;
             SaldoPendiente = 0m;
+            viajesEsteMes = 0;
+            fechaPrimerViajeDelMes = DateTime.Now; 
         }
 
         public virtual decimal ObtenerTarifa()
         {
-            return 940m; 
+            
+            if (DateTime.Now.Month != fechaPrimerViajeDelMes.Month)
+            {
+                viajesEsteMes = 0;
+                fechaPrimerViajeDelMes = DateTime.Now;
+            }
+
+            viajesEsteMes++;
+
+            
+            if (viajesEsteMes >= 30 && viajesEsteMes <= 79)
+            {
+                return TarifaBase * 0.80m; 
+            }
+            else if (viajesEsteMes == 80)
+            {
+                return TarifaBase * 0.75m; 
+            }
+            else
+            {
+                return TarifaBase; 
+            }
         }
 
         public void CargarSaldo(decimal monto)
@@ -143,7 +169,7 @@ namespace TransporteUrbano
 
         public override decimal ObtenerTarifa()
         {
-            return 940 / 2;
+            return TarifaBase / 2;
         }
     }
 
@@ -199,7 +225,7 @@ namespace TransporteUrbano
             }
             else
             {
-                return 940;
+                return TarifaBase;
             }
         }
     }
