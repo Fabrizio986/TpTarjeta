@@ -3,6 +3,18 @@ using Xunit;
 
 namespace TransporteUrbano.Tests
 {
+    public static class SystemTime
+    {
+        private static DateTime? _time;
+
+        public static void Set(DateTime time)
+        {
+            _time = time;
+        }
+
+        public static DateTime Now => _time ?? DateTime.Now;
+    }
+
     public class ColectivoTests
     {
         [Fact]
@@ -47,7 +59,6 @@ namespace TransporteUrbano.Tests
             Assert.Equal("No se puede realizar la transacción. Saldo mínimo permitido: $-480", exception.Message);
         }
 
-
         [Fact]
         public void PagarBoleto_MedioBoleto_MontoEsMitad()
         {
@@ -64,7 +75,6 @@ namespace TransporteUrbano.Tests
             Assert.Equal(tarifaEsperada, boleto.Monto);
             Assert.Equal(saldoInicial - tarifaEsperada, tarjeta.Saldo);
         }
-
 
         [Fact]
         public void PagarBoleto_ConTarjetaNormal_DescuentaTarifaCompleta()
@@ -97,7 +107,6 @@ namespace TransporteUrbano.Tests
 
             // Assert
             Assert.Equal("No se puede realizar otro viaje antes de 5 minutos o se ha alcanzado el límite de viajes para el día.", exception.Message);
-
         }
 
         [Fact]
@@ -173,9 +182,61 @@ namespace TransporteUrbano.Tests
             // Assert
             Assert.Equal(1200m, tarifaPrimerViajeNuevoMes);
         }
+    }
+
+    public class TarjetaFranquiciaTests
+    {
+        // [Theory]
+        // [InlineData(DayOfWeek.Monday, 5)]  // Antes de las 6 am
+        // [InlineData(DayOfWeek.Monday, 22)] // Despues de las 10 pm
+        // [InlineData(DayOfWeek.Saturday, 10)] // Sabado
+        // [InlineData(DayOfWeek.Sunday, 15)] // Domingo
+        // public void TarjetaMedioBoleto_NoPuedeViajarFueraDeHorario(DayOfWeek dia, int hora)
+        // {
+        //     // Arrange
+        //     var tarjeta = new TarjetaMedioBoleto(5000m);
+        //     DateTime simulatedDate = new DateTime(2024, 10, 15, hora, 0, 0).AddDays((int)dia - (int)DateTime.Now.DayOfWeek);
+        //     SystemTime.Set(simulatedDate); // Simula la fecha/hora actual
+        //
+        //     // Act
+        //     bool puedeViajar = tarjeta.PuedeViajar();
+        //
+        //     // Assert
+        //     Assert.False(puedeViajar);
+        // }
+
+        [Theory]
+        [InlineData(DayOfWeek.Monday, 8)]  
+        [InlineData(DayOfWeek.Wednesday, 14)]
+        public void TarjetaMedioBoleto_PuedeViajarEnHorarioPermitido(DayOfWeek dia, int hora)
+        {
+            // Arrange
+            var tarjeta = new TarjetaMedioBoleto(5000m);
+            DateTime simulatedDate = new DateTime(2024, 10, 15, hora, 0, 0).AddDays((int)dia - (int)DateTime.Now.DayOfWeek);
+            SystemTime.Set(simulatedDate); 
+
+            // Act
+            bool puedeViajar = tarjeta.PuedeViajar();
+
+            // Assert
+            Assert.True(puedeViajar);
+        }
 
 
+        [Fact]
+        public void TarjetaBoletoEducativo_PuedeViajarEntreSemana()
+        {
+            // Arrange
+            var tarjeta = new TarjetaBoletoEducativo(0m);
+            DateTime simulatedDate = new DateTime(2024, 10, 15, 10, 0, 0);
+            SystemTime.Set(simulatedDate); 
 
+            // Act
+            bool puedeViajar = tarjeta.PuedeViajar();
+
+            // Assert
+            Assert.True(puedeViajar);
+        }
     }
 }
 
