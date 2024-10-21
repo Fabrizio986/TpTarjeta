@@ -175,6 +175,7 @@ namespace TransporteUrbano
             return viajesRealizados < 2;
         }
 
+
         public void RegistrarViaje()
         {
             if (ultimoViaje == null || (DateTime.Now - ultimoViaje.Value).TotalMinutes >= 5)

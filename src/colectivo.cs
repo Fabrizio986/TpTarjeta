@@ -4,7 +4,9 @@ namespace TransporteUrbano
 {
     public class Colectivo
     {
-        public Boleto PagarCon(Tarjeta tarjeta)
+        private const decimal TarifaInterurbana = 2500m;
+
+        public Boleto PagarCon(Tarjeta tarjeta, bool esInterurbano = false)
         {
             TarjetaMedioBoleto tarjetaMedioBoleto = tarjeta as TarjetaMedioBoleto;
             TarjetaBoletoEducativo tarjetaBoletoEducativo = tarjeta as TarjetaBoletoEducativo;
@@ -17,11 +19,10 @@ namespace TransporteUrbano
                 }
             }
 
-            decimal tarifa = tarjeta.ObtenerTarifa();
+            decimal tarifa = esInterurbano ? TarifaInterurbana : tarjeta.ObtenerTarifa();
 
             if (tarjetaBoletoEducativo != null)
             {
-                
                 if (tarjetaBoletoEducativo.PuedeViajar())
                 {
                     Console.WriteLine("Viaje gratuito con boleto educativo.");
@@ -35,7 +36,6 @@ namespace TransporteUrbano
 
             if (tarifa > 0)
             {
-                
                 if (tarjeta.Saldo >= tarifa)
                 {
                     tarjeta.DescontarSaldo(tarifa);
