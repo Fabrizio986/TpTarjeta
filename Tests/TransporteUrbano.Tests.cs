@@ -86,11 +86,11 @@ namespace TransporteUrbano.Tests
             decimal tarifa = tarjeta.ObtenerTarifa(); 
 
             // Act
-            Boleto boleto = colectivo.PagarCon(tarjeta); // Asegúrate de que este método funcione correctamente
+            Boleto boleto = colectivo.PagarCon(tarjeta); 
 
             // Assert
-            decimal saldoEsperado = saldoInicial - tarifa; // Calcula el saldo esperado
-            Assert.Equal(saldoEsperado, tarjeta.Saldo); // Verifica que el saldo sea el esperado
+            decimal saldoEsperado = saldoInicial - tarifa; 
+            Assert.Equal(saldoEsperado, tarjeta.Saldo); 
         }
 
         [Fact]
@@ -121,8 +121,8 @@ namespace TransporteUrbano.Tests
             tarjeta.CargarSaldo(cargaExcesiva);
 
             // Assert
-            Assert.Equal(36000m, tarjeta.Saldo); // Verifica que el saldo no supere el límite
-            Assert.Equal(2000m, tarjeta.SaldoPendiente); // Verifica que el excedente se haya almacenado como saldo pendiente
+            Assert.Equal(36000m, tarjeta.Saldo); 
+            Assert.Equal(2000m, tarjeta.SaldoPendiente); 
         }
 
         [Fact]
