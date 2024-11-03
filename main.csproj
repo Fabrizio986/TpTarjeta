@@ -11,6 +11,8 @@
     <Compile Include="src/tarjeta.cs" />
     <Compile Include="src/boleto.cs" />
     <Compile Include="src/main.cs" />
+    <Compile Include="src/TiempoFalso.cs" />
+    <Compile Include="src/Tiempo.cs" />
   </ItemGroup>
 
 </Project>

@@ -1,22 +1,32 @@
 using System;
 using Xunit;
+using ManejoDeTiempos;
 
 namespace TransporteUrbano.Tests
 {
-    public static class SystemTime
-    {
-        private static DateTime? _time;
-
-        public static void Set(DateTime time)
-        {
-            _time = time;
-        }
-
-        public static DateTime Now => _time ?? DateTime.Now;
-    }
-
     public class ColectivoTests
     {
+        public TiempoFalso tiempoFalso;
+
+        public ColectivoTests()
+        {
+            tiempoFalso = new TiempoFalso();
+        }
+
+        [Fact]
+        public void TestAgregarDias()
+        {
+            // Arrange
+            var tiempoFalso = new TiempoFalso();
+        
+            // Act
+            tiempoFalso.AgregarDias(7);
+            var fechaActual = tiempoFalso.Now();
+
+            // Assert
+            Assert.Equal(new DateTime(2024, 10, 21), fechaActual);
+        }
+
         [Fact]
         public void PagarBoleto_ConSaldo_DescuentaSaldo()
         {
@@ -27,7 +37,7 @@ namespace TransporteUrbano.Tests
             decimal tarifa = tarjeta.ObtenerTarifa();
 
             // Act
-            Boleto boleto = colectivo.PagarCon(tarjeta);
+            Boleto boleto = colectivo.PagarCon(tarjeta, tiempoFalso);
 
             // Assert
             Assert.Equal(saldoInicial - tarifa, tarjeta.Saldo);
@@ -42,7 +52,7 @@ namespace TransporteUrbano.Tests
             Colectivo colectivo = new Colectivo();
 
             // Act & Assert
-            var exception = Assert.Throws<InvalidOperationException>(() => colectivo.PagarCon(tarjeta));
+            var exception = Assert.Throws<InvalidOperationException>(() => colectivo.PagarCon(tarjeta, tiempoFalso));
             Assert.Equal("Saldo insuficiente para realizar el pago.", exception.Message);
             Assert.Equal(saldoInicial, tarjeta.Saldo); // Saldo no debería cambiar
         }
@@ -68,10 +78,14 @@ namespace TransporteUrbano.Tests
             Colectivo colectivo = new Colectivo();
 
             // Act
-            Boleto boleto = colectivo.PagarCon(tarjeta);
-            decimal tarifaEsperada = 1200 / 2;
+            tiempoFalso.AgregarMinutos(60 * 15);
+            Boleto primerBoleto = colectivo.PagarCon(tarjeta, tiempoFalso);
+
+            tiempoFalso.AgregarMinutos(15);
+            Boleto boleto = colectivo.PagarCon(tarjeta, tiempoFalso);
 
             // Assert
+            decimal tarifaEsperada = 1200 / 2;
             Assert.Equal(tarifaEsperada, boleto.Monto);
             Assert.Equal(saldoInicial - tarifaEsperada, tarjeta.Saldo);
         }
@@ -83,14 +97,14 @@ namespace TransporteUrbano.Tests
             decimal saldoInicial = 1300m;
             Tarjeta tarjeta = new Tarjeta(saldoInicial);
             Colectivo colectivo = new Colectivo();
-            decimal tarifa = tarjeta.ObtenerTarifa(); 
+            decimal tarifa = tarjeta.ObtenerTarifa();
 
             // Act
-            Boleto boleto = colectivo.PagarCon(tarjeta); 
+            Boleto boleto = colectivo.PagarCon(tarjeta, tiempoFalso);
 
             // Assert
-            decimal saldoEsperado = saldoInicial - tarifa; 
-            Assert.Equal(saldoEsperado, tarjeta.Saldo); 
+            decimal saldoEsperado = saldoInicial - tarifa;
+            Assert.Equal(saldoEsperado, tarjeta.Saldo);
         }
 
         [Fact]
@@ -102,10 +116,13 @@ namespace TransporteUrbano.Tests
             Colectivo colectivo = new Colectivo();
 
             // Act
-            colectivo.PagarCon(tarjeta); // Primer viaje
-            var exception = Assert.Throws<InvalidOperationException>(() => colectivo.PagarCon(tarjeta));
+            tiempoFalso.AgregarMinutos(15 * 60);
+            colectivo.PagarCon(tarjeta, tiempoFalso); // Primer viaje
+            tiempoFalso.AgregarMinutos(3); // Esperar 4 minutos
+            colectivo.PagarCon(tarjeta, tiempoFalso); // Segundo viaje
 
             // Assert
+            var exception = Assert.Throws<InvalidOperationException>(() => colectivo.PagarCon(tarjeta, tiempoFalso));
             Assert.Equal("No se puede realizar otro viaje antes de 5 minutos o se ha alcanzado el límite de viajes para el día.", exception.Message);
         }
 
@@ -121,8 +138,8 @@ namespace TransporteUrbano.Tests
             tarjeta.CargarSaldo(cargaExcesiva);
 
             // Assert
-            Assert.Equal(36000m, tarjeta.Saldo); 
-            Assert.Equal(2000m, tarjeta.SaldoPendiente); 
+            Assert.Equal(36000m, tarjeta.Saldo);
+            Assert.Equal(2000m, tarjeta.SaldoPendiente);
         }
 
         [Fact]
@@ -159,7 +176,7 @@ namespace TransporteUrbano.Tests
             decimal tarifaViaje80 = tarjeta.ObtenerTarifa();
 
             // Assert
-            Assert.Equal(1200m * 0.75m, tarifaViaje80); 
+            Assert.Equal(1200m * 0.75m, tarifaViaje80);
         }
 
         [Fact]
@@ -174,7 +191,7 @@ namespace TransporteUrbano.Tests
             }
 
             // Simular cambio de mes
-            tarjeta = new Tarjeta(10000m); 
+            tarjeta = new Tarjeta(10000m);
 
             // Act
             decimal tarifaPrimerViajeNuevoMes = tarjeta.ObtenerTarifa();
@@ -186,57 +203,96 @@ namespace TransporteUrbano.Tests
 
     public class TarjetaFranquiciaTests
     {
-        // [Theory]
-        // [InlineData(DayOfWeek.Monday, 5)]  // Antes de las 6 am
-        // [InlineData(DayOfWeek.Monday, 22)] // Despues de las 10 pm
-        // [InlineData(DayOfWeek.Saturday, 10)] // Sabado
-        // [InlineData(DayOfWeek.Sunday, 15)] // Domingo
-        // public void TarjetaMedioBoleto_NoPuedeViajarFueraDeHorario(DayOfWeek dia, int hora)
-        // {
-        //     // Arrange
-        //     var tarjeta = new TarjetaMedioBoleto(5000m);
-        //     DateTime simulatedDate = new DateTime(2024, 10, 15, hora, 0, 0).AddDays((int)dia - (int)DateTime.Now.DayOfWeek);
-        //     SystemTime.Set(simulatedDate); // Simula la fecha/hora actual
-        //
-        //     // Act
-        //     bool puedeViajar = tarjeta.PuedeViajar();
-        //
-        //     // Assert
-        //     Assert.False(puedeViajar);
-        // }
+        public TiempoFalso tiempo;
 
-        [Theory]
-        [InlineData(DayOfWeek.Monday, 8)]  
-        [InlineData(DayOfWeek.Wednesday, 14)]
-        public void TarjetaMedioBoleto_PuedeViajarEnHorarioPermitido(DayOfWeek dia, int hora)
+        public TarjetaFranquiciaTests()
+        {
+            tiempo = new TiempoFalso();
+        }
+
+        [Fact]
+        public void TarjetaMedioBoleto_NoPuedeViajarFueraDeHorario()
         {
             // Arrange
             var tarjeta = new TarjetaMedioBoleto(5000m);
-            DateTime simulatedDate = new DateTime(2024, 10, 15, hora, 0, 0).AddDays((int)dia - (int)DateTime.Now.DayOfWeek);
-            SystemTime.Set(simulatedDate); 
+
+            tiempo.AgregarMinutos(60 * 3); // 3:00 AM no se puede
 
             // Act
-            bool puedeViajar = tarjeta.PuedeViajar();
+            bool puedeViajar = tarjeta.PuedeViajar(tiempo);
+        
+            // Assert
+            Assert.False(puedeViajar);
+        }
 
+        [Fact]
+        public void TarjetaMedioBoleto_PuedeViajarEnHorarioPermitido()
+        {
+            // Arrange
+            var tarjeta = new TarjetaMedioBoleto(5000m);
+
+            tiempo.AgregarMinutos(60 * 7); // 7:00 AM se puede
+
+            // Act
+            bool puedeViajar = tarjeta.PuedeViajar(tiempo);
+        
             // Assert
             Assert.True(puedeViajar);
         }
 
+        [Fact]
+        public void TarjetaBoletoEducativo_NoPuedeViajarEnFinde()
+        {
+            // Arrange
+            var tarjeta = new TarjetaMedioBoleto(5000m);
+
+            tiempo.AgregarDias(6); // Sábado
+            tiempo.AgregarMinutos(60 * 7); // 7:00 AM se puede
+
+            // Act
+            bool puedeViajar = tarjeta.PuedeViajar(tiempo);
+        
+            // Assert
+            Assert.False(puedeViajar);
+
+        }
 
         [Fact]
         public void TarjetaBoletoEducativo_PuedeViajarEntreSemana()
         {
             // Arrange
-            var tarjeta = new TarjetaBoletoEducativo(0m);
-            DateTime simulatedDate = new DateTime(2024, 10, 15, 10, 0, 0);
-            SystemTime.Set(simulatedDate); 
+            var tarjeta = new TarjetaMedioBoleto(5000m);
+
+            tiempo.AgregarDias(2); // Miércoles
+            tiempo.AgregarMinutos(60 * 7); // 7:00 AM se puede
 
             // Act
-            bool puedeViajar = tarjeta.PuedeViajar();
-
+            bool puedeViajar = tarjeta.PuedeViajar(tiempo);
+        
             // Assert
             Assert.True(puedeViajar);
+
+        }
+
+
+    }
+
+
+    public class TarjetaTests
+    {
+        [Fact]
+        public void TestCargaDeSaldo()
+        {
+            // Arrange
+            decimal saldoInicial = 1000m;
+            decimal carga = 2000m;
+            Tarjeta tarjeta = new Tarjeta(saldoInicial);
+
+            // Act
+            tarjeta.CargarSaldo(carga);
+
+            // Assert
+            Assert.Equal(saldoInicial + carga, tarjeta.Saldo);
         }
     }
 }
-

@@ -1,4 +1,5 @@
 using System;
+using ManejoDeTiempos;
 
 namespace TransporteUrbano
 {
@@ -11,6 +12,8 @@ namespace TransporteUrbano
 
             Console.WriteLine("Elija el tipo de tarjeta: 1. Regular, 2. Medio Boleto, 3. Jubilado, 4. Boleto Educativo");
             string tipoTarjeta = Console.ReadLine();
+
+            Tiempo tiempoActual = new Tiempo();
 
             Tarjeta tarjeta;
 
@@ -57,11 +60,11 @@ namespace TransporteUrbano
                         break;
 
                     case "3":
-                        PagarBoleto(tarjeta, colectivo);
+                        PagarBoleto(tarjeta, colectivo, tiempoActual); // Pasar tiempoActual
                         break;
 
                     case "4":
-                        PagarBoletoInterurbano(tarjeta, colectivo);
+                        PagarBoletoInterurbano(tarjeta, colectivo, tiempoActual); // Pasar tiempoActual
                         break;
 
                     case "5":
@@ -101,16 +104,16 @@ namespace TransporteUrbano
             }
         }
 
-        static void PagarBoleto(Tarjeta tarjeta, Colectivo colectivo)
+        static void PagarBoleto(Tarjeta tarjeta, Colectivo colectivo, Tiempo tiempoActual) // Recibir tiempoActual
         {
             try
             {
                 if (tarjeta is TarjetaBoletoEducativo tarjetaEducativa)
                 {
-                    if (tarjetaEducativa.PuedeViajar())
+                    if (tarjetaEducativa.PuedeViajar(tiempoActual))
                     {
-                        Boleto boleto = colectivo.PagarCon(tarjeta);
-                        tarjetaEducativa.RegistrarViaje();  
+                        Boleto boleto = colectivo.PagarCon(tarjeta, tiempoActual);
+                        tarjetaEducativa.RegistrarViaje(tiempoActual);  
                         Console.WriteLine("Pago realizado:");
                         boleto.MostrarDetalles();
                     }
@@ -121,7 +124,7 @@ namespace TransporteUrbano
                 }
                 else
                 {
-                    Boleto boleto = colectivo.PagarCon(tarjeta);
+                    Boleto boleto = colectivo.PagarCon(tarjeta, tiempoActual);
                     Console.WriteLine("Pago realizado:");
                     boleto.MostrarDetalles();
                 }
@@ -132,11 +135,11 @@ namespace TransporteUrbano
             }
         }
 
-        static void PagarBoletoInterurbano(Tarjeta tarjeta, Colectivo colectivo)
+        static void PagarBoletoInterurbano(Tarjeta tarjeta, Colectivo colectivo, Tiempo tiempoActual) // Recibir tiempoActual
         {
             try
             {
-                Boleto boleto = colectivo.PagarCon(tarjeta, true);
+                Boleto boleto = colectivo.PagarCon(tarjeta, tiempoActual, true);
                 Console.WriteLine("Pago realizado para boleto interurbano:");
                 boleto.MostrarDetalles();
             }
@@ -147,4 +150,3 @@ namespace TransporteUrbano
         }
     }
 }
-

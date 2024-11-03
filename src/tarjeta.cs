@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using ManejoDeTiempos;
 
 namespace TransporteUrbano
 {
@@ -154,7 +155,7 @@ namespace TransporteUrbano
 
         public TarjetaMedioBoleto(decimal saldoInicial) : base(saldoInicial) { }
 
-        public bool PuedeViajar()
+        public bool PuedeViajar(Tiempo tiempo)
         {
             if (!EsHorarioPermitido())
             {
@@ -167,7 +168,7 @@ namespace TransporteUrbano
                 return true;
             }
 
-            if ((DateTime.Now - ultimoViaje.Value).TotalMinutes < 5)
+            if ((tiempo.Now() - ultimoViaje.Value).TotalMinutes < 5)
             {
                 return false;
             }
@@ -176,9 +177,9 @@ namespace TransporteUrbano
         }
 
 
-        public void RegistrarViaje()
+        public void RegistrarViaje(Tiempo tiempo)
         {
-            if (ultimoViaje == null || (DateTime.Now - ultimoViaje.Value).TotalMinutes >= 5)
+            if (ultimoViaje == null || (tiempo.Now() - ultimoViaje.Value).TotalMinutes >= 5)
             {
                 ultimoViaje = DateTime.Now;
                 viajesRealizados++;
@@ -202,7 +203,7 @@ namespace TransporteUrbano
             ultimoViaje = null;
         }
 
-        public bool PuedeViajar()
+        public bool PuedeViajar(Tiempo tiempo)
         {
             if (!EsHorarioPermitido())
             {
@@ -217,7 +218,7 @@ namespace TransporteUrbano
 
             if (ultimoViaje.HasValue)
             {
-                var tiempoTranscurrido = DateTime.Now - ultimoViaje.Value;
+                var tiempoTranscurrido = tiempo.Now() - ultimoViaje.Value;
                 if (tiempoTranscurrido.TotalMinutes < 5)
                 {
                     Console.WriteLine("Debe esperar 5 minutos entre los viajes gratuitos.");
@@ -228,12 +229,12 @@ namespace TransporteUrbano
             return true;
         }
 
-        public void RegistrarViaje()
+        public void RegistrarViaje(Tiempo tiempo)
         {
             if (viajesGratisRealizados < 2)
             {
                 viajesGratisRealizados++;
-                ultimoViaje = DateTime.Now;
+                ultimoViaje = tiempo.Now();
             }
             else
             {
