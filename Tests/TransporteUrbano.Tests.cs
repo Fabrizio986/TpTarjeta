@@ -8,9 +8,10 @@ namespace TransporteUrbano.Tests
     [TestFixture]
     public class ColectivoTests
     {
-        public TiempoFalso tiempoFalso;
+        private TiempoFalso tiempoFalso;
 
-        public ColectivoTests()
+        [SetUp]
+        public void SetUp()
         {
             tiempoFalso = new TiempoFalso();
         }
@@ -22,13 +23,13 @@ namespace TransporteUrbano.Tests
             decimal saldoInicial = 1300m;
             Tarjeta tarjeta = new Tarjeta(saldoInicial, tiempoFalso);
             Colectivo colectivo = new Colectivo();
-            decimal tarifa = tarjeta.ObtenerTarifa();
+            decimal tarifa = tarjeta.ObtenerTarifa(tiempoFalso);
 
             // Act
             Boleto boleto = colectivo.PagarCon(tarjeta, tiempoFalso);
 
             // Assert
-            Assert.AreEqual(saldoInicial - tarifa, tarjeta.Saldo);
+            Assert.That(saldoInicial - tarifa, Is.EqualTo(tarjeta.Saldo));
         }
 
         [Test]
@@ -41,8 +42,8 @@ namespace TransporteUrbano.Tests
 
             // Act & Assert
             var exception = Assert.Throws<InvalidOperationException>(() => colectivo.PagarCon(tarjeta, tiempoFalso));
-            Assert.AreEqual("Saldo insuficiente para realizar el pago.", exception.Message);
-            Assert.AreEqual(saldoInicial, tarjeta.Saldo); // Saldo no debería cambiar
+            Assert.That(exception.Message, Is.EqualTo("Saldo insuficiente para realizar el pago."));
+            Assert.That(saldoInicial, Is.EqualTo(tarjeta.Saldo)); // Saldo no debería cambiar
         }
 
         [Test]
@@ -54,7 +55,7 @@ namespace TransporteUrbano.Tests
 
             // Act & Assert
             var exception = Assert.Throws<InvalidOperationException>(() => tarjeta.DescontarSaldo(1000m));
-            Assert.AreEqual("No se puede realizar la transacción. Saldo mínimo permitido: $-480", exception.Message);
+            Assert.That(exception.Message, Is.EqualTo("No se puede realizar la transacción. Saldo mínimo permitido: $-480"));
         }
 
         [Test]
@@ -66,17 +67,24 @@ namespace TransporteUrbano.Tests
             Colectivo colectivo = new Colectivo();
 
             // Act
-            tiempoFalso.AgregarMinutos(60 * 15);
+            tiempoFalso.AgregarDias(1); // Mover al siguiente día
+            tiempoFalso.AgregarMinutos(60 * 15); // Avanzar a las 3 PM
+
+            // Pagar primer boleto
             Boleto primerBoleto = colectivo.PagarCon(tarjeta, tiempoFalso);
 
-            tiempoFalso.AgregarMinutos(15);
+            // Avanzar el tiempo para el segundo viaje
+            tiempoFalso.AgregarMinutos(15); // Intentar pagar después de 15 minutos
+
+            // Pagar el segundo boleto
             Boleto boleto = colectivo.PagarCon(tarjeta, tiempoFalso);
 
             // Assert
-            decimal tarifaEsperada = 1200 / 2;
-            Assert.AreEqual(tarifaEsperada, boleto.Monto);
-            Assert.AreEqual(saldoInicial - tarifaEsperada, tarjeta.Saldo);
+            decimal tarifaEsperada = 1200m / 2; // Tarifa esperada para medio boleto
+            Assert.That(tarifaEsperada, Is.EqualTo(boleto.Monto));
+            Assert.That(saldoInicial - (tarifaEsperada*2), Is.EqualTo(tarjeta.Saldo));
         }
+
 
         [Test]
         public void PagarBoleto_ConTarjetaNormal_DescuentaTarifaCompleta()
@@ -85,14 +93,14 @@ namespace TransporteUrbano.Tests
             decimal saldoInicial = 1300m;
             Tarjeta tarjeta = new Tarjeta(saldoInicial, tiempoFalso);
             Colectivo colectivo = new Colectivo();
-            decimal tarifa = tarjeta.ObtenerTarifa();
+            decimal tarifa = tarjeta.ObtenerTarifa(tiempoFalso);
 
             // Act
             Boleto boleto = colectivo.PagarCon(tarjeta, tiempoFalso);
 
             // Assert
             decimal saldoEsperado = saldoInicial - tarifa;
-            Assert.AreEqual(saldoEsperado, tarjeta.Saldo);
+            Assert.That(saldoEsperado, Is.EqualTo(tarjeta.Saldo));
         }
 
         [Test]
@@ -104,15 +112,21 @@ namespace TransporteUrbano.Tests
             Colectivo colectivo = new Colectivo();
 
             // Act
-            tiempoFalso.AgregarMinutos(15 * 60);
+            tiempoFalso.AgregarMinutos(10 * 60); // Lunes 10 am
             colectivo.PagarCon(tarjeta, tiempoFalso); // Primer viaje
-            tiempoFalso.AgregarMinutos(3); // Esperar 4 minutos
+
+            // Esperar más de 5 minutos
+            tiempoFalso.AgregarMinutos(6); // Esperar 6 minutos
             colectivo.PagarCon(tarjeta, tiempoFalso); // Segundo viaje
+
+            // Esperar menos de 5 minutos para el tercer viaje
+            tiempoFalso.AgregarMinutos(3); // Esperar 3 minutos
 
             // Assert
             var exception = Assert.Throws<InvalidOperationException>(() => colectivo.PagarCon(tarjeta, tiempoFalso));
-            Assert.AreEqual("No se puede realizar otro viaje antes de 5 minutos o se ha alcanzado el límite de viajes para el día.", exception.Message);
+            Assert.That(exception.Message, Is.EqualTo("No se puede realizar otro viaje antes de 5 minutos o se ha alcanzado el límite de viajes para el día."));
         }
+
 
         [Test]
         public void CargarSaldo_CuandoExcedeLimite_CreditaHastaLimiteYGuardaExcedente()
@@ -126,74 +140,75 @@ namespace TransporteUrbano.Tests
             tarjeta.CargarSaldo(cargaExcesiva);
 
             // Assert
-            Assert.AreEqual(36000m, tarjeta.Saldo);
-            Assert.AreEqual(2000m, tarjeta.SaldoPendiente);
+            Assert.That(tarjeta.Saldo, Is.EqualTo(36000m));
+            Assert.That(tarjeta.SaldoPendiente, Is.EqualTo(2000m));
         }
 
         [Test]
         public void ObtenerTarifa_Viaje31_DebeAplicarDescuento20Porciento()
         {
             // Arrange
-            var tarjeta = new Tarjeta(30000m);
+            var tarjeta = new Tarjeta(30000m, tiempoFalso);
 
             for (int i = 0; i < 30; i++)
             {
-                tarjeta.ObtenerTarifa();
+                tarjeta.ObtenerTarifa(tiempoFalso);
             }
 
             // Act
-            decimal tarifaViaje31 = tarjeta.ObtenerTarifa();
+            decimal tarifaViaje31 = tarjeta.ObtenerTarifa(tiempoFalso);
 
             // Assert
-            Assert.AreEqual(1200m * 0.80m, tarifaViaje31); // 20% de descuento
+            Assert.That(tarifaViaje31, Is.EqualTo(1200m * 0.80m)); // 20% de descuento
         }
 
         [Test]
         public void ObtenerTarifa_Viaje80_DebeAplicarDescuento25Porciento()
         {
             // Arrange
-            var tarjeta = new Tarjeta(30000m);
+            var tarjeta = new Tarjeta(30000m, tiempoFalso);
 
             for (int i = 0; i < 79; i++)
             {
-                tarjeta.ObtenerTarifa();
+                tarjeta.ObtenerTarifa(tiempoFalso);
             }
 
             // Act
-            decimal tarifaViaje80 = tarjeta.ObtenerTarifa();
+            decimal tarifaViaje80 = tarjeta.ObtenerTarifa(tiempoFalso);
 
             // Assert
-            Assert.AreEqual(1200m * 0.75m, tarifaViaje80);
+            Assert.That(tarifaViaje80, Is.EqualTo(1200m * 0.75m));
         }
 
         [Test]
         public void ObtenerTarifa_NuevoMes_DebeReiniciarConteoDeViajes()
         {
             // Arrange
-            var tarjeta = new Tarjeta(30000m);
+            var tarjeta = new Tarjeta(30000m, tiempoFalso);
 
             for (int i = 0; i < 30; i++)
             {
-                tarjeta.ObtenerTarifa();
+                tarjeta.ObtenerTarifa(tiempoFalso);
             }
 
             // Simular cambio de mes
-            tarjeta = new Tarjeta(10000m);
+            tarjeta = new Tarjeta(10000m, tiempoFalso);
 
             // Act
-            decimal tarifaPrimerViajeNuevoMes = tarjeta.ObtenerTarifa();
+            decimal tarifaPrimerViajeNuevoMes = tarjeta.ObtenerTarifa(tiempoFalso);
 
             // Assert
-            Assert.AreEqual(1200m, tarifaPrimerViajeNuevoMes);
+            Assert.That(tarifaPrimerViajeNuevoMes, Is.EqualTo(1200m));
         }
     }
 
     [TestFixture]
     public class TarjetaFranquiciaTests
     {
-        public TiempoFalso tiempoFalso;
+        private TiempoFalso tiempoFalso;
 
-        public TarjetaFranquiciaTests()
+        [SetUp]
+        public void SetUp()
         {
             tiempoFalso = new TiempoFalso();
         }
@@ -202,9 +217,8 @@ namespace TransporteUrbano.Tests
         public void TarjetaMedioBoleto_NoPuedeViajarFueraDeHorario()
         {
             // Arrange
+            tiempoFalso.AgregarMinutos(60 * 2); // 2:00 AM
             var tarjeta = new TarjetaMedioBoleto(5000m, tiempoFalso);
-
-            tiempoFalso.AgregarMinutos(60 * 3); // 3:00 AM no se puede
 
             // Act
             bool puedeViajar = tarjeta.PuedeViajar(tiempoFalso);
@@ -216,10 +230,10 @@ namespace TransporteUrbano.Tests
         [Test]
         public void TarjetaMedioBoleto_PuedeViajarEnHorarioPermitido()
         {
+            tiempoFalso.AgregarMinutos(60 * 7); // 7:00 AM
+
             // Arrange
             var tarjeta = new TarjetaMedioBoleto(5000m, tiempoFalso);
-
-            tiempoFalso.AgregarMinutos(60 * 7); // 7:00 AM se puede
 
             // Act
             bool puedeViajar = tarjeta.PuedeViajar(tiempoFalso);
@@ -264,9 +278,10 @@ namespace TransporteUrbano.Tests
     [TestFixture]
     public class TarjetaTests
     {
-        public TiempoFalso tiempoFalso;
+        private TiempoFalso tiempoFalso;
 
-        public TarjetaTests()
+        [SetUp]
+        public void SetUp()
         {
             tiempoFalso = new TiempoFalso();
         }
@@ -278,10 +293,11 @@ namespace TransporteUrbano.Tests
             Tarjeta tarjeta = new Tarjeta(1000m, tiempoFalso);
         
             // Act
-            tarjeta.CargarSaldo(500m);
+            tarjeta.CargarSaldo(2000m);
 
             // Assert
-            Assert.AreEqual(1500m, tarjeta.Saldo);
+            Assert.That(tarjeta.Saldo, Is.EqualTo(3000m));
         }
     }
 }
+

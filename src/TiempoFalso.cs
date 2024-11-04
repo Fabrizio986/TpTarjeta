@@ -30,5 +30,11 @@ namespace ManejoDeTiempos
         {
             tiempo = tiempo.AddMinutes(cantidad);
         }
+
+        public DateTime ObtenerFechaActual()
+        {
+            return tiempo;
+        }
+
     }
 }
