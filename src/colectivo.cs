@@ -20,7 +20,7 @@ namespace TransporteUrbano
                 }
             }
 
-            decimal tarifa = esInterurbano ? TarifaInterurbana : tarjeta.ObtenerTarifa();
+            decimal tarifa = esInterurbano ? TarifaInterurbana : tarjeta.ObtenerTarifa(tiempo);
 
             if (tarjetaBoletoEducativo != null)
             {

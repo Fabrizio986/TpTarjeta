@@ -1,8 +1,9 @@
+using NUnit.Framework;
 namespace Tests;
 
 public class UnitTest1
 {
-    [Fact]
+    [Test]
     public void Test1()
     {
 

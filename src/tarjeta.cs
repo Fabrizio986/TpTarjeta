@@ -16,7 +16,7 @@ namespace TransporteUrbano
         public decimal Saldo { get; protected set; }
         public decimal SaldoPendiente { get; private set; }
 
-        public Tarjeta(decimal saldoInicial)
+        public Tarjeta(decimal saldoInicial, Tiempo tiempo)
         {
             if (!EsSaldoValido(saldoInicial))
             {
@@ -26,15 +26,15 @@ namespace TransporteUrbano
             Saldo = saldoInicial;
             SaldoPendiente = 0m;
             viajesEsteMes = 0;
-            fechaPrimerViajeDelMes = DateTime.Now; 
+            fechaPrimerViajeDelMes = tiempo.Now(); 
         }
 
-        public virtual decimal ObtenerTarifa()
+        public virtual decimal ObtenerTarifa(Tiempo tiempo)
         {
-            if (DateTime.Now.Month != fechaPrimerViajeDelMes.Month)
+            if (tiempo.Now().Month != fechaPrimerViajeDelMes.Month)
             {
                 viajesEsteMes = 0;
-                fechaPrimerViajeDelMes = DateTime.Now;
+                fechaPrimerViajeDelMes = tiempo.Now();
             }
 
             viajesEsteMes++;
@@ -134,12 +134,13 @@ namespace TransporteUrbano
             }
         }
 
-        protected bool EsHorarioPermitido()
+        protected bool EsHorarioPermitido(Tiempo tiempo)
         {
-            DateTime now = DateTime.Now;
-            if (now.DayOfWeek >= DayOfWeek.Monday && now.DayOfWeek <= DayOfWeek.Friday)
+            DateTime ahora = tiempo.Now();
+            
+            if (ahora.DayOfWeek >= DayOfWeek.Monday && ahora.DayOfWeek <= DayOfWeek.Friday)
             {
-                if (now.Hour >= 6 && now.Hour < 22)
+                if (ahora.Hour >= 6 && ahora.Hour < 22)
                 {
                     return true;
                 }
@@ -153,11 +154,11 @@ namespace TransporteUrbano
         private DateTime? ultimoViaje;
         private int viajesRealizados;
 
-        public TarjetaMedioBoleto(decimal saldoInicial) : base(saldoInicial) { }
+        public TarjetaMedioBoleto(decimal saldoInicial, Tiempo tiempo) : base(saldoInicial, tiempo) { }
 
         public bool PuedeViajar(Tiempo tiempo)
         {
-            if (!EsHorarioPermitido())
+            if (!EsHorarioPermitido(tiempo))
             {
                 Console.WriteLine("Viaje no permitido fuera de la franja horaria de 6 a 22, de lunes a viernes.");
                 return false;
@@ -176,17 +177,16 @@ namespace TransporteUrbano
             return viajesRealizados < 2;
         }
 
-
         public void RegistrarViaje(Tiempo tiempo)
         {
             if (ultimoViaje == null || (tiempo.Now() - ultimoViaje.Value).TotalMinutes >= 5)
             {
-                ultimoViaje = DateTime.Now;
+                ultimoViaje = tiempo.Now();
                 viajesRealizados++;
             }
         }
 
-        public override decimal ObtenerTarifa()
+        public override decimal ObtenerTarifa(Tiempo tiempo)
         {
             return TarifaBase / 2;
         }
@@ -197,7 +197,7 @@ namespace TransporteUrbano
         private int viajesGratisRealizados;
         private DateTime? ultimoViaje; 
 
-        public TarjetaBoletoEducativo(decimal saldoInicial) : base(saldoInicial)
+        public TarjetaBoletoEducativo(decimal saldoInicial, Tiempo tiempo) : base(saldoInicial, tiempo)
         {
             viajesGratisRealizados = 0;
             ultimoViaje = null;
@@ -205,7 +205,7 @@ namespace TransporteUrbano
 
         public bool PuedeViajar(Tiempo tiempo)
         {
-            if (!EsHorarioPermitido())
+            if (!EsHorarioPermitido(tiempo))
             {
                 Console.WriteLine("Viaje no permitido fuera de la franja horaria de 6 a 22, de lunes a viernes.");
                 return false;
@@ -242,7 +242,7 @@ namespace TransporteUrbano
             }
         }
 
-        public override decimal ObtenerTarifa()
+        public override decimal ObtenerTarifa(Tiempo tiempo)
         {
             if (viajesGratisRealizados < 2)
             {
@@ -257,16 +257,16 @@ namespace TransporteUrbano
 
     public class TarjetaJubilado : Tarjeta
     {
-        public TarjetaJubilado(decimal saldoInicial) : base(saldoInicial) { }
+        public TarjetaJubilado(decimal saldoInicial, Tiempo tiempo) : base(saldoInicial, tiempo) { }
 
-        public override decimal ObtenerTarifa()
+        public override decimal ObtenerTarifa(Tiempo tiempo)
         {
             return 0m;
         }
 
-        public bool PuedeViajar()
+        public bool PuedeViajar(Tiempo tiempo)
         {
-            if (!EsHorarioPermitido())
+            if (!EsHorarioPermitido(tiempo))
             {
                 Console.WriteLine("Viaje no permitido fuera de la franja horaria de 6 a 22, de lunes a viernes.");
                 return false;
@@ -276,4 +276,3 @@ namespace TransporteUrbano
         }
     }
 }
-

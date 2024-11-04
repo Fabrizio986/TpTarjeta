@@ -20,16 +20,16 @@ namespace TransporteUrbano
             switch (tipoTarjeta)
             {
                 case "2":
-                    tarjeta = new TarjetaMedioBoleto(saldoInicial);
+                    tarjeta = new TarjetaMedioBoleto(saldoInicial, tiempoActual);
                     break;
                 case "3":
-                    tarjeta = new TarjetaJubilado(saldoInicial);
+                    tarjeta = new TarjetaJubilado(saldoInicial, tiempoActual);
                     break;
                 case "4":
-                    tarjeta = new TarjetaBoletoEducativo(saldoInicial);
+                    tarjeta = new TarjetaBoletoEducativo(saldoInicial, tiempoActual);
                     break;
                 default:
-                    tarjeta = new Tarjeta(saldoInicial);
+                    tarjeta = new Tarjeta(saldoInicial, tiempoActual);
                     break;
             }
 
