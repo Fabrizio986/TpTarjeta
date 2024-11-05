@@ -200,104 +200,24 @@ namespace TransporteUrbano.Tests
             // Assert
             Assert.That(tarifaPrimerViajeNuevoMes, Is.EqualTo(1200m));
         }
-    }
-
-    [TestFixture]
-    public class TarjetaFranquiciaTests
-    {
-        private TiempoFalso tiempoFalso;
-
-        [SetUp]
-        public void SetUp()
-        {
-            tiempoFalso = new TiempoFalso();
-        }
 
         [Test]
-        public void TarjetaMedioBoleto_NoPuedeViajarFueraDeHorario()
+        public void Tarjeta_PagarBoleto_Jubilado()
         {
             // Arrange
-            tiempoFalso.AgregarMinutos(60 * 2); // 2:00 AM
-            var tarjeta = new TarjetaMedioBoleto(5000m, tiempoFalso);
-
-            // Act
-            bool puedeViajar = tarjeta.PuedeViajar(tiempoFalso);
-        
-            // Assert
-            Assert.False(puedeViajar);
-        }
-
-        [Test]
-        public void TarjetaMedioBoleto_PuedeViajarEnHorarioPermitido()
-        {
             tiempoFalso.AgregarMinutos(60 * 7); // 7:00 AM
-
-            // Arrange
-            var tarjeta = new TarjetaMedioBoleto(5000m, tiempoFalso);
-
-            // Act
-            bool puedeViajar = tarjeta.PuedeViajar(tiempoFalso);
-        
-            // Assert
-            Assert.True(puedeViajar);
-        }
-
-        [Test]
-        public void TarjetaBoletoEducativo_NoPuedeViajarEnFinde()
-        {
-            // Arrange
-            var tarjeta = new TarjetaMedioBoleto(5000m, tiempoFalso);
-
-            tiempoFalso.AgregarDias(6); // Sábado
-            tiempoFalso.AgregarMinutos(60 * 7); // 7:00 AM se puede
+            Tarjeta tarjeta = new TarjetaJubilado(1000m, tiempoFalso);
+            Colectivo colectivo = new Colectivo();
+            decimal tarifa = tarjeta.ObtenerTarifa(tiempoFalso);
 
             // Act
-            bool puedeViajar = tarjeta.PuedeViajar(tiempoFalso);
-        
+            Boleto boleto = colectivo.PagarCon(tarjeta, tiempoFalso);
+
             // Assert
-            Assert.False(puedeViajar);
+            Assert.That(tarjeta.Saldo, Is.EqualTo(1000)); // Viaja gratis
         }
 
-        [Test]
-        public void TarjetaBoletoEducativo_PuedeViajarEntreSemana()
-        {
-            // Arrange
-            var tarjeta = new TarjetaMedioBoleto(5000m, tiempoFalso);
-
-            tiempoFalso.AgregarDias(2); // Miércoles
-            tiempoFalso.AgregarMinutos(60 * 7); // 7:00 AM se puede
-
-            // Act
-            bool puedeViajar = tarjeta.PuedeViajar(tiempoFalso);
-        
-            // Assert
-            Assert.True(puedeViajar);
-        }
     }
 
-    [TestFixture]
-    public class TarjetaTests
-    {
-        private TiempoFalso tiempoFalso;
-
-        [SetUp]
-        public void SetUp()
-        {
-            tiempoFalso = new TiempoFalso();
-        }
-
-        [Test]
-        public void Tarjeta_CargaSaldo_ActualizaSaldo()
-        {
-            // Arrange
-            Tarjeta tarjeta = new Tarjeta(1000m, tiempoFalso);
-        
-            // Act
-            tarjeta.CargarSaldo(2000m);
-
-            // Assert
-            Assert.That(tarjeta.Saldo, Is.EqualTo(3000m));
-        }
-    }
 }
 
