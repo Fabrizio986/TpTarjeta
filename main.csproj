@@ -13,6 +13,9 @@
     <Compile Include="src/main.cs" />
     <Compile Include="src/TiempoFalso.cs" />
     <Compile Include="src/Tiempo.cs" />
+    <Compile Include="src/tarjetaboletoeducativo.cs" />
+    <Compile Include="src/tarjetaboletojubilado.cs" />
+    <Compile Include="src/tarjetamedioboleto.cs" />
   </ItemGroup>
 
 </Project>
